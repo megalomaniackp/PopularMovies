@@ -1,0 +1,18 @@
+<resources>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <string name="pref_sort_key">Sort</string>
+    <string name="pref_sort_label">Sort Order</string>
+    <string name="pref_sort_dialog">Sort Movies By</string>
+
+    <string-array name="pref_sort_array">
+        <item>Most Popular First</item>
+        <item>Highest Rated First</item>
+    </string-array>
+
+    <string name="pref_sort_default">Most Popular First</string>
+
+
+</resources>
