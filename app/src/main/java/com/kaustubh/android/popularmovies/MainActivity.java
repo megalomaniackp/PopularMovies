@@ -3,6 +3,8 @@ package com.kaustubh.android.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,7 +44,16 @@ public class MainActivity extends AppCompatActivity {
         apikey = getString(R.string.api_key);
 
 
-        Context context = getApplicationContext();
+
+
+
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         GridView gridview = (GridView) findViewById(R.id.gridview);
         gridview.setAdapter(imageAdapter);
 
@@ -57,33 +69,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateMovies();
     }
 
     private void updateMovies() {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        if (!isNetworkAvailable()) {
 
-        String sortorder = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+            Toast.makeText(getApplicationContext(), "Network connection not available. Please check your internet settings.", Toast.LENGTH_LONG).show();
 
-        if (sortorder.equalsIgnoreCase("Highest Rated First"))
-            sortorder = "vote_average.desc";
-        else
-            sortorder = "popularity.desc";
+        } else {
+
+            String sortorder = prefs.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
+
+            if (sortorder.equalsIgnoreCase("Highest Rated First"))
+                sortorder = "vote_average.desc";
+            else
+                sortorder = "popularity.desc";
 
 
-        FetchMovieTask fetchMovieTask = new FetchMovieTask();
-        fetchMovieTask.execute(sortorder);
+            FetchMovieTask fetchMovieTask = new FetchMovieTask();
+            fetchMovieTask.execute(sortorder);
+       }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     @Override
@@ -218,33 +233,34 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] result) {
-
-            String ppath[] = new String[result.length];
-            String ids[] = new String[result.length];
-
-
-            for (int i = 0; i < result.length; i++) {
-
-                ids[i] = result[i].substring(0, result[i].indexOf(":"));
-                ppath[i] = result[i].substring(result[i].indexOf(":") + 1, result[i].length());
-
-            }
-
             if (result != null) {
-                ArrayList<String> posterPaths = imageAdapter.getPosterPaths();
-                ArrayList<String> movieIDs = imageAdapter.getMovieIDs();
-                posterPaths.clear();
-                movieIDs.clear();
-                for (int i = 0; i < result.length; i++) {
-                    posterPaths.add(ppath[i]);
-                    movieIDs.add(ids[i]);
-                    //imageAdapter.setMovieID("hello");
 
+                String ppath[] = new String[result.length];
+                String ids[] = new String[result.length];
+
+
+                for (int i = 0; i < result.length; i++) {
+
+                    ids[i] = result[i].substring(0, result[i].indexOf(":"));
+                    ppath[i] = result[i].substring(result[i].indexOf(":") + 1, result[i].length());
 
                 }
+
+
+                    ArrayList<String> posterPaths = imageAdapter.getPosterPaths();
+                    ArrayList<String> movieIDs = imageAdapter.getMovieIDs();
+                    posterPaths.clear();
+                    movieIDs.clear();
+                    for (int i = 0; i < result.length; i++) {
+                        posterPaths.add(ppath[i]);
+                        movieIDs.add(ids[i]);
+
+
+
+                    }
                 imageAdapter.notifyDataSetChanged();
             }
-            //super.onPostExecute(strings);
+
 
         }
 
